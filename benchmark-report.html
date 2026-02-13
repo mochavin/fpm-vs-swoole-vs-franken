@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Runtime Benchmark Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 50%, #F472B6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+    </style>
+</head>
+<body class="bg-[#0B0F1A] text-gray-200 min-h-screen pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        <!-- Header -->
+        <div class="mb-12 text-center">
+            <h1 class="text-5xl font-extrabold tracking-tight mb-4">
+                <span class="gradient-text">Laravel 12</span> Benchmark
+            </h1>
+            <p class="text-xl text-gray-400">Comparing PHP-FPM, Swoole, and FrankenPHP</p>
+            <div class="mt-4 inline-flex items-center px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
+                Generated on 2026-02-13 02:07:37            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                            <div class="glass rounded-2xl p-6 transition-all border border-transparent hover:border-gray-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold uppercase tracking-wider" style="color: #EF4444">fpm</h3>
+                        <div class="flex flex-col items-end">
+                                                        <span class="text-[8px] text-gray-600 font-mono">fpm_2026-02-13T01-59-56-967Z.json</span>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-500 text-xs uppercase font-semibold">Max Throughput</p>
+                            <p class="text-3xl font-bold">1,317.39 <span class="text-sm font-normal text-gray-500">req/s</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
+                            <div>
+                                <p class="text-gray-500 text-xs uppercase font-semibold">Avg Latency</p>
+                                <p class="text-xl font-medium">1,345.72 <span class="text-xs text-gray-500">ms</span></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-xs uppercase font-semibold">Success Rate</p>
+                                <p class="text-xl font-medium text-red-400">
+                                    75.28%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="glass rounded-2xl p-6 transition-all border border-transparent hover:border-gray-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold uppercase tracking-wider" style="color: #3B82F6">swoole</h3>
+                        <div class="flex flex-col items-end">
+                                                        <span class="text-[8px] text-gray-600 font-mono">swoole_2026-02-13T02-03-45-687Z.json</span>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-500 text-xs uppercase font-semibold">Max Throughput</p>
+                            <p class="text-3xl font-bold">2,670.27 <span class="text-sm font-normal text-gray-500">req/s</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
+                            <div>
+                                <p class="text-gray-500 text-xs uppercase font-semibold">Avg Latency</p>
+                                <p class="text-xl font-medium">561.16 <span class="text-xs text-gray-500">ms</span></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-xs uppercase font-semibold">Success Rate</p>
+                                <p class="text-xl font-medium text-green-400">
+                                    100.00%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="glass rounded-2xl p-6 transition-all border border-transparent hover:border-gray-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold uppercase tracking-wider" style="color: #10B981">franken</h3>
+                        <div class="flex flex-col items-end">
+                                                            <span class="bg-yellow-500/10 text-yellow-500 text-[10px] px-2 py-0.5 rounded border border-yellow-500/20 font-bold uppercase mb-1">Speed King</span>
+                                                        <span class="text-[8px] text-gray-600 font-mono">franken_2026-02-13T02-07-36-960Z.json</span>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-500 text-xs uppercase font-semibold">Max Throughput</p>
+                            <p class="text-3xl font-bold">3,364.90 <span class="text-sm font-normal text-gray-500">req/s</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
+                            <div>
+                                <p class="text-gray-500 text-xs uppercase font-semibold">Avg Latency</p>
+                                <p class="text-xl font-medium">412.17 <span class="text-xs text-gray-500">ms</span></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-xs uppercase font-semibold">Success Rate</p>
+                                <p class="text-xl font-medium text-green-400">
+                                    100.00%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+
+        <!-- Main Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <!-- Requests Per Second -->
+            <div class="glass rounded-2xl p-8">
+                <h3 class="text-xl font-bold mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Throughput (Requests/s)
+                </h3>
+                <div class="chart-container">
+                    <canvas id="rpsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- p95 Latency -->
+            <div class="glass rounded-2xl p-8">
+                <h3 class="text-xl font-bold mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    P95 Latency (ms)
+                </h3>
+                <div class="chart-container">
+                    <canvas id="latencyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenario Breakdown -->
+        <div class="glass rounded-2xl overflow-hidden mb-12">
+            <div class="p-8 border-b border-gray-800 bg-white/[0.01]">
+                <h3 class="text-xl font-bold">Latency Comparison (Avg ms)</h3>
+                <p class="text-sm text-gray-500 mt-1">Detailed response times across different workload scenarios.</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-gray-400 text-xs border-b border-gray-800">
+                            <th class="p-6 font-bold uppercase tracking-widest">Workload</th>
+                                                            <th class="p-6 font-bold uppercase tracking-widest text-right" style="color: #EF4444">fpm</th>
+                                                            <th class="p-6 font-bold uppercase tracking-widest text-right" style="color: #3B82F6">swoole</th>
+                                                            <th class="p-6 font-bold uppercase tracking-widest text-right" style="color: #10B981">franken</th>
+                                                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800">
+                                                    <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="p-6">
+                                    <p class="font-bold text-gray-200">Health Check</p>
+                                    <p class="text-xs text-gray-500">Static JSON, no DB</p>
+                                </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">916.22</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">639.32</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">400.21</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                            </tr>
+                                                    <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="p-6">
+                                    <p class="font-bold text-gray-200">List Posts</p>
+                                    <p class="text-xs text-gray-500">DB query (Limit 20)</p>
+                                </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">458.71</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">63.84</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">347.85</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                            </tr>
+                                                    <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="p-6">
+                                    <p class="font-bold text-gray-200">Single Post</p>
+                                    <p class="text-xs text-gray-500">DB Find by ID</p>
+                                </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">2,852.10</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">527.41</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">336.83</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                            </tr>
+                                                    <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="p-6">
+                                    <p class="font-bold text-gray-200">Create Post</p>
+                                    <p class="text-xs text-gray-500">DB Insert + Validation</p>
+                                </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">1,555.65</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">544.96</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">88.56</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                            </tr>
+                                                    <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="p-6">
+                                    <p class="font-bold text-gray-200">Heavy Compute</p>
+                                    <p class="text-xs text-gray-500">Fibonacci 30 + JSON loops</p>
+                                </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">12,069.40</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">11,682.81</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                                    <td class="p-6 text-right">
+                                        <span class="text-xl font-mono font-medium">14,806.14</span>
+                                        <span class="text-[10px] text-gray-500 ml-1">ms</span>
+                                    </td>
+                                                            </tr>
+                                            </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Raw Metrics Export -->
+        <div class="text-center text-gray-500 text-sm">
+            Detailed reports available in <code>./results/</code> directory.
+        </div>
+    </div>
+
+    <script>
+        const data = {"fpm":{"state":{"isStdOutTTY":false,"isStdErrTTY":false,"testRunDurationMs":214241.38539},"metrics":{"http_req_duration":{"contains":"time","values":{"min":5.598448,"med":841.771791,"max":16787.323114,"p(90)":2772.1639250000003,"p(95)":3254.7198132999993,"avg":1345.7211662904895},"thresholds":{"p(95)<5000":{"ok":true}},"type":"trend"},"list_posts_duration":{"type":"trend","contains":"time","values":{"p(90)":737.7886119,"p(95)":784.7146897,"avg":458.711312849462,"min":5.598448,"med":458.143492,"max":1234.62928},"thresholds":{"p(95)<2000":{"ok":true}}},"http_req_connecting":{"type":"trend","contains":"time","values":{"min":0,"med":0,"max":550.505592,"p(90)":0,"p(95)":0,"avg":3.4705903269923803}},"errors":{"type":"rate","contains":"default","values":{"rate":0.2472337274437622,"passes":69779,"fails":212460}},"data_sent":{"type":"counter","contains":"data","values":{"rate":136994.74518693972,"count":29349944}},"single_post_duration":{"values":{"avg":2852.099402791361,"min":33.220752,"med":2880.093806,"max":3780.906478,"p(90)":3340.1372726,"p(95)":3387.7826158000003},"thresholds":{"p(95)<1000":{"ok":false}},"type":"trend","contains":"time"},"http_req_tls_handshaking":{"type":"trend","contains":"time","values":{"avg":0,"min":0,"med":0,"max":0,"p(90)":0,"p(95)":0}},"data_received":{"type":"counter","contains":"data","values":{"rate":5784152.262384696,"count":1239204794}},"checks":{"type":"rate","contains":"default","values":{"fails":139558,"rate":0.7527662725562378,"passes":424920}},"health_duration":{"type":"trend","contains":"time","values":{"max":16787.323114,"p(90)":951.3167284000002,"p(95)":1099.822125400003,"avg":916.2213309683766,"min":110.040178,"med":836.085757},"thresholds":{"p(95)<500":{"ok":false}}},"create_post_duration":{"type":"trend","contains":"time","values":{"avg":1555.6536411554885,"min":71.244534,"med":1331.3749125,"max":3383.931743,"p(90)":2316.446836500002,"p(95)":2929.80517785},"thresholds":{"p(95)<2000":{"ok":false}}},"vus_max":{"type":"gauge","contains":"default","values":{"value":6000,"min":6000,"max":6000}},"heavy_duration":{"type":"trend","contains":"time","values":{"p(95)":14706.546580199998,"avg":12069.397933064085,"min":132.518597,"med":14120.604722,"max":15471.883471,"p(90)":14543.6536008},"thresholds":{"p(95)<5000":{"ok":false}}},"iterations":{"type":"counter","contains":"default","values":{"count":282239,"rate":1317.3878589620708}},"http_req_waiting":{"type":"trend","contains":"time","values":{"p(95)":3252.9420727999996,"avg":1343.3657902853456,"min":5.529297,"med":840.086537,"max":16783.573709,"p(90)":2770.7429844}},"http_reqs":{"contains":"default","values":{"count":282239,"rate":1317.3878589620708},"type":"counter"},"http_req_blocked":{"values":{"p(95)":0.025723199999999953,"avg":8.698522964090783,"min":0.000993,"med":0.004425,"max":632.079705,"p(90)":0.008538},"type":"trend","contains":"time"},"iteration_duration":{"type":"trend","contains":"time","values":{"avg":1510.5391577314151,"min":157.269931,"med":952.576656,"max":16890.730912,"p(90)":2880.8627412,"p(95)":3372.1165844999996}},"http_req_duration{expected_response:true}":{"values":{"avg":1453.7337131301804,"min":33.220752,"med":841.980412,"max":16787.323114,"p(90)":2885.1531037000004,"p(95)":3309.2250495499998},"type":"trend","contains":"time"},"http_req_sending":{"type":"trend","contains":"time","values":{"p(95)":0.1493703999999992,"avg":0.31586595646951743,"min":0.002232,"med":0.010482,"max":238.840681,"p(90)":0.030264200000000012}},"http_req_receiving":{"type":"trend","contains":"time","values":{"p(95)":13.082345199999967,"avg":2.0395100486360964,"min":0.009531,"med":0.061857,"max":228.893187,"p(90)":4.040419400000001}},"vus":{"type":"gauge","contains":"default","values":{"value":137,"min":0,"max":5000}},"http_req_failed":{"type":"rate","contains":"default","values":{"rate":0.2472337274437622,"passes":69779,"fails":212460},"thresholds":{"rate<0.10":{"ok":false}}}},"root_group":{"checks":[{"id":"73274babb93df6aaf60956333620494b","passes":147279,"fails":0,"name":"health: status 200","path":"::health: status 200"},{"name":"health: has status field","path":"::health: has status field","id":"e3466950220fa8927227cca3e62b3a7a","passes":147279,"fails":0},{"name":"list posts: status 200","path":"::list posts: status 200","id":"aa1ba2b07c43d535de11363a23935def","passes":28929,"fails":34163},{"name":"list posts: has data","path":"::list posts: has data","id":"0bfd81de793e606d631b6ddbfa060366","passes":28929,"fails":34163},{"name":"single post: status 200","path":"::single post: status 200","id":"dc518b35d2ef032260840c9e62178853","passes":28564,"fails":3675},{"name":"single post: has data","path":"::single post: has data","id":"441bb9f0422ab692bbc813abf96f49fe","passes":28564,"fails":3675},{"name":"create post: status 201","path":"::create post: status 201","id":"64130582048fe83f90d2081cc7cd5c83","passes":1759,"fails":31941},{"path":"::create post: has data","id":"a20d7ec19a28330db9facc49e9048e3c","passes":1759,"fails":31941,"name":"create post: has data"},{"name":"heavy: status 200","path":"::heavy: status 200","id":"2554278d45c6ab68b6f67342dde0c5b6","passes":5929,"fails":0},{"fails":0,"name":"heavy: has result","path":"::heavy: has result","id":"7c00052bb965e88c56c5078838e4bf44","passes":5929}],"name":"","path":"","id":"d41d8cd98f00b204e9800998ecf8427e","groups":[]},"options":{"summaryTimeUnit":"","noColor":false,"summaryTrendStats":["avg","min","med","max","p(90)","p(95)"]},"_source":"fpm_2026-02-13T01-59-56-967Z.json","_mtime":1770947996},"swoole":{"state":{"isStdErrTTY":false,"testRunDurationMs":215693.217938,"isStdOutTTY":false},"metrics":{"http_reqs":{"type":"counter","contains":"default","values":{"count":575959,"rate":2670.269401634857}},"http_req_connecting":{"values":{"p(95)":0,"avg":4.973391420519528,"min":0,"med":0,"max":3416.153821,"p(90)":0},"type":"trend","contains":"time"},"data_sent":{"type":"counter","contains":"data","values":{"count":64160284,"rate":297460.8317005246}},"http_req_failed":{"values":{"rate":0,"passes":0,"fails":575959},"thresholds":{"rate<0.10":{"ok":true}},"type":"rate","contains":"default"},"health_duration":{"type":"trend","contains":"time","values":{"max":1270.785035,"p(90)":802.330643,"p(95)":850.9234548999999,"avg":639.3165401651086,"min":80.535881,"med":632.3661155},"thresholds":{"p(95)<500":{"ok":false}}},"list_posts_duration":{"type":"trend","contains":"time","values":{"min":2.516057,"med":39.676921,"max":521.825435,"p(90)":152.622497,"p(95)":204.733003,"avg":63.83849844440558},"thresholds":{"p(95)<2000":{"ok":true}}},"http_req_blocked":{"type":"trend","contains":"time","values":{"p(95)":0.007457,"avg":7.674573328338792,"min":0.00097,"med":0.003623,"max":3506.932162,"p(90)":0.006046}},"vus_max":{"type":"gauge","contains":"default","values":{"value":6000,"min":6000,"max":6000}},"heavy_duration":{"values":{"p(95)":16600.2808048,"avg":11682.811371475585,"min":113.425643,"med":14135.845374,"max":19980.669525,"p(90)":15405.9943684},"thresholds":{"p(95)<5000":{"ok":false}},"type":"trend","contains":"time"},"iterations":{"contains":"default","values":{"count":575959,"rate":2670.269401634857},"type":"counter"},"vus":{"values":{"value":2,"min":0,"max":5000},"type":"gauge","contains":"default"},"iteration_duration":{"contains":"time","values":{"avg":727.3613379760478,"min":141.739982,"med":623.572684,"max":20487.435675,"p(90)":867.0175621999999,"p(95)":953.5708084999999},"type":"trend"},"http_req_sending":{"contains":"time","values":{"avg":0.08247385287667877,"min":0.002045,"med":0.008569,"max":231.704304,"p(90)":0.019072,"p(95)":0.04287649999999988},"type":"trend"},"checks":{"type":"rate","contains":"default","values":{"rate":1,"passes":1151918,"fails":0}},"http_req_duration{expected_response:true}":{"contains":"time","values":{"avg":561.1565439560311,"min":2.516057,"med":492.306341,"max":19980.669525,"p(90)":752.1451458,"p(95)":834.3313123999999},"type":"trend"},"http_req_waiting":{"contains":"time","values":{"avg":561.0031269201038,"min":2.468107,"med":492.185196,"max":19980.616926,"p(90)":752.0039016000001,"p(95)":834.1866848999999},"type":"trend"},"errors":{"values":{"rate":0,"passes":0,"fails":575959},"type":"rate","contains":"default"},"http_req_tls_handshaking":{"type":"trend","contains":"time","values":{"max":0,"p(90)":0,"p(95)":0,"avg":0,"min":0,"med":0}},"http_req_duration":{"type":"trend","contains":"time","values":{"avg":561.1565439560311,"min":2.516057,"med":492.306341,"max":19980.669525,"p(90)":752.1451458,"p(95)":834.3313123999999},"thresholds":{"p(95)<5000":{"ok":true}}},"create_post_duration":{"values":{"min":21.775495,"med":350.2339845,"max":3795.473523,"p(90)":1221.567355200009,"p(95)":2427.696230099998,"avg":544.9578189472053},"thresholds":{"p(95)<2000":{"ok":false}},"type":"trend","contains":"time"},"data_received":{"type":"counter","contains":"data","values":{"rate":9792547.93540675,"count":2112186176}},"single_post_duration":{"thresholds":{"p(95)<1000":{"ok":true}},"type":"trend","contains":"time","values":{"avg":527.4118720403612,"min":41.423838,"med":514.667247,"max":989.782981,"p(90)":698.1106568,"p(95)":750.869987}},"http_req_receiving":{"type":"trend","contains":"time","values":{"max":103.772058,"p(90)":0.07711640000000003,"p(95)":0.11184449999999989,"avg":0.07094318305816691,"min":0.010155,"med":0.034683}}},"root_group":{"groups":[],"checks":[{"name":"health: status 200","path":"::health: status 200","id":"73274babb93df6aaf60956333620494b","passes":197840,"fails":0},{"name":"health: has status field","path":"::health: has status field","id":"e3466950220fa8927227cca3e62b3a7a","passes":197840,"fails":0},{"name":"list posts: status 200","path":"::list posts: status 200","id":"aa1ba2b07c43d535de11363a23935def","passes":155981,"fails":0},{"path":"::list posts: has data","id":"0bfd81de793e606d631b6ddbfa060366","passes":155981,"fails":0,"name":"list posts: has data"},{"name":"single post: status 200","path":"::single post: status 200","id":"dc518b35d2ef032260840c9e62178853","passes":144437,"fails":0},{"id":"441bb9f0422ab692bbc813abf96f49fe","passes":144437,"fails":0,"name":"single post: has data","path":"::single post: has data"},{"name":"create post: status 201","path":"::create post: status 201","id":"64130582048fe83f90d2081cc7cd5c83","passes":71574,"fails":0},{"name":"create post: has data","path":"::create post: has data","id":"a20d7ec19a28330db9facc49e9048e3c","passes":71574,"fails":0},{"id":"2554278d45c6ab68b6f67342dde0c5b6","passes":6127,"fails":0,"name":"heavy: status 200","path":"::heavy: status 200"},{"name":"heavy: has result","path":"::heavy: has result","id":"7c00052bb965e88c56c5078838e4bf44","passes":6127,"fails":0}],"name":"","path":"","id":"d41d8cd98f00b204e9800998ecf8427e"},"options":{"summaryTrendStats":["avg","min","med","max","p(90)","p(95)"],"summaryTimeUnit":"","noColor":false},"_source":"swoole_2026-02-13T02-03-45-687Z.json","_mtime":1770948225},"franken":{"root_group":{"name":"","path":"","id":"d41d8cd98f00b204e9800998ecf8427e","groups":[],"checks":[{"name":"health: status 200","path":"::health: status 200","id":"73274babb93df6aaf60956333620494b","passes":294103,"fails":0},{"passes":294103,"fails":0,"name":"health: has status field","path":"::health: has status field","id":"e3466950220fa8927227cca3e62b3a7a"},{"fails":0,"name":"list posts: status 200","path":"::list posts: status 200","id":"aa1ba2b07c43d535de11363a23935def","passes":75596},{"id":"0bfd81de793e606d631b6ddbfa060366","passes":75596,"fails":0,"name":"list posts: has data","path":"::list posts: has data"},{"name":"single post: status 200","path":"::single post: status 200","id":"dc518b35d2ef032260840c9e62178853","passes":205865,"fails":0},{"name":"single post: has data","path":"::single post: has data","id":"441bb9f0422ab692bbc813abf96f49fe","passes":205865,"fails":0},{"id":"64130582048fe83f90d2081cc7cd5c83","passes":154894,"fails":0,"name":"create post: status 201","path":"::create post: status 201"},{"passes":154894,"fails":0,"name":"create post: has data","path":"::create post: has data","id":"a20d7ec19a28330db9facc49e9048e3c"},{"name":"heavy: status 200","path":"::heavy: status 200","id":"2554278d45c6ab68b6f67342dde0c5b6","passes":5142,"fails":0},{"name":"heavy: has result","path":"::heavy: has result","id":"7c00052bb965e88c56c5078838e4bf44","passes":5142,"fails":0}]},"options":{"summaryTrendStats":["avg","min","med","max","p(90)","p(95)"],"summaryTimeUnit":"","noColor":false},"state":{"isStdOutTTY":false,"isStdErrTTY":false,"testRunDurationMs":218609.460294},"metrics":{"heavy_duration":{"type":"trend","contains":"time","values":{"p(95)":18417.833250850003,"avg":14806.140496354923,"min":150.669099,"med":18167.243106,"max":18848.701915,"p(90)":18351.2947753},"thresholds":{"p(95)<5000":{"ok":false}}},"http_req_duration{expected_response:true}":{"type":"trend","contains":"time","values":{"med":347.578254,"max":18848.701915,"p(90)":447.75393109999993,"p(95)":486.48128079999987,"avg":412.168292925858,"min":4.147812}},"http_req_connecting":{"type":"trend","contains":"time","values":{"med":0,"max":412.149336,"p(90)":0,"p(95)":0,"avg":0.8209758573259981,"min":0}},"http_reqs":{"type":"counter","contains":"default","values":{"count":735600,"rate":3364.9046981348292}},"http_req_receiving":{"values":{"p(95)":0.20275239999999942,"avg":0.1481010507721583,"min":0.008775,"med":0.030325,"max":156.028673,"p(90)":0.07888729999999992},"type":"trend","contains":"time"},"data_received":{"type":"counter","contains":"data","values":{"count":2084000569,"rate":9532984.374039909}},"http_req_duration":{"values":{"min":4.147812,"med":347.578254,"max":18848.701915,"p(90)":447.75393109999993,"p(95)":486.48128079999987,"avg":412.168292925858},"thresholds":{"p(95)<5000":{"ok":true}},"type":"trend","contains":"time"},"http_req_waiting":{"type":"trend","contains":"time","values":{"max":18848.670799,"p(90)":447.51581589999995,"p(95)":486.0030457999999,"avg":411.9460609912951,"min":4.045011,"med":347.380019}},"data_sent":{"type":"counter","contains":"data","values":{"count":98272833,"rate":449536.0487502984}},"vus":{"type":"gauge","contains":"default","values":{"value":8,"min":0,"max":5000}},"vus_max":{"type":"gauge","contains":"default","values":{"value":6000,"min":6000,"max":6000}},"http_req_sending":{"contains":"time","values":{"med":0.008155,"max":76.436411,"p(90)":0.01915,"p(95)":0.07077839999999944,"avg":0.07413088380233974,"min":0.002214},"type":"trend"},"http_req_failed":{"type":"rate","contains":"default","values":{"fails":735600,"rate":0,"passes":0},"thresholds":{"rate<0.10":{"ok":true}}},"http_req_blocked":{"type":"trend","contains":"time","values":{"med":0.003271,"max":482.567071,"p(90)":0.005558,"p(95)":0.006706,"avg":2.9215806855219313,"min":0.001012}},"list_posts_duration":{"type":"trend","contains":"time","values":{"avg":347.8485397869899,"min":5.515218,"med":362.4714025,"max":821.891216,"p(90)":516.195134,"p(95)":537.9170345},"thresholds":{"p(95)<2000":{"ok":true}}},"single_post_duration":{"type":"trend","contains":"time","values":{"avg":336.8348888152161,"min":4.147812,"med":330.329931,"max":510.447529,"p(90)":388.75527180000006,"p(95)":406.7149968},"thresholds":{"p(95)<1000":{"ok":true}}},"http_req_tls_handshaking":{"type":"trend","contains":"time","values":{"max":0,"p(90)":0,"p(95)":0,"avg":0,"min":0,"med":0}},"iteration_duration":{"type":"trend","contains":"time","values":{"min":104.918174,"med":459.5604095,"max":19352.493469,"p(90)":576.4146764,"p(95)":639.8870832499999,"avg":573.2608555730158}},"health_duration":{"type":"trend","contains":"time","values":{"max":697.276804,"p(90)":463.8890526,"p(95)":491.4897164,"avg":400.2087600549591,"min":90.324968,"med":392.265495},"thresholds":{"p(95)<500":{"ok":true}}},"errors":{"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":735600}},"iterations":{"contains":"default","values":{"count":735600,"rate":3364.9046981348292},"type":"counter"},"checks":{"contains":"default","values":{"rate":1,"passes":1471200,"fails":0},"type":"rate"},"create_post_duration":{"type":"trend","contains":"time","values":{"avg":88.55573673534316,"min":31.007744,"med":78.468989,"max":384.248094,"p(90)":138.1404986000001,"p(95)":155.08084635000003},"thresholds":{"p(95)<2000":{"ok":true}}}},"_source":"franken_2026-02-13T02-07-36-960Z.json","_mtime":1770948456}};
+        const colors = {"fpm":"#EF4444","swoole":"#3B82F6","franken":"#10B981"};
+        const runtimes = Object.keys(data);
+
+        // RPS Chart
+        new Chart(document.getElementById('rpsChart'), {
+            type: 'bar',
+            data: {
+                labels: runtimes.map(r => r.toUpperCase()),
+                datasets: [{
+                    label: 'Req/s',
+                    data: runtimes.map(r => data[r].metrics.http_reqs.values.rate),
+                    backgroundColor: runtimes.map(r => colors[r] + '44'),
+                    borderColor: runtimes.map(r => colors[r]),
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } },
+                    x: { grid: { display: false }, ticks: { color: '#9CA3AF' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Latency Chart (p95)
+        new Chart(document.getElementById('latencyChart'), {
+            type: 'bar',
+            data: {
+                labels: runtimes.map(r => r.toUpperCase()),
+                datasets: [{
+                    label: 'P95 ms',
+                    data: runtimes.map(r => data[r].metrics.http_req_duration.values['p(95)']),
+                    backgroundColor: runtimes.map(r => colors[r] + '44'),
+                    borderColor: runtimes.map(r => colors[r]),
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } },
+                    x: { grid: { display: false }, ticks: { color: '#9CA3AF' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+</html>

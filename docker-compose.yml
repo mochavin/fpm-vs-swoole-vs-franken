@@ -1,0 +1,136 @@
+services:
+  # ──────────────────────────────────────────────
+  # PostgreSQL Database
+  # ──────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: laravel_bench
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U laravel -d laravel_bench"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  # ──────────────────────────────────────────────
+  # Runtime 1: PHP-FPM + Nginx
+  # ──────────────────────────────────────────────
+  app-fpm:
+    build:
+      context: .
+      dockerfile: docker/fpm/Dockerfile
+    environment:
+      APP_NAME: "Laravel Bench"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_RUNTIME: fpm
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: laravel_bench
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      LOG_CHANNEL: stderr
+      SESSION_DRIVER: cookie
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - fpm_storage:/var/www/html/storage
+      - fpm_public:/var/www/html/public
+
+  nginx-fpm:
+    image: nginx:alpine
+    ports:
+      - "8001:80"
+    volumes:
+      - ./docker/fpm/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - fpm_public:/var/www/html/public:ro
+    depends_on:
+      - app-fpm
+
+  # ──────────────────────────────────────────────
+  # Runtime 2: Swoole (Laravel Octane)
+  # ──────────────────────────────────────────────
+  app-swoole:
+    build:
+      context: .
+      dockerfile: docker/swoole/Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      APP_NAME: "Laravel Bench"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_RUNTIME: swoole
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: laravel_bench
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      LOG_CHANNEL: stderr
+      SESSION_DRIVER: cookie
+      OCTANE_SERVER: swoole
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────
+  # Runtime 3: FrankenPHP (Laravel Octane)
+  # ──────────────────────────────────────────────
+  app-franken:
+    build:
+      context: .
+      dockerfile: docker/franken/Dockerfile
+    ports:
+      - "8003:8000"
+    environment:
+      APP_NAME: "Laravel Bench"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_RUNTIME: frankenphp
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: laravel_bench
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      LOG_CHANNEL: stderr
+      SESSION_DRIVER: cookie
+      OCTANE_SERVER: frankenphp
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────
+  # k6 Load Tester (run on-demand)
+  # ──────────────────────────────────────────────
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      - ./k6:/scripts
+      - ./results:/results
+    environment:
+      K6_OUT: json=/results/output.json
+    depends_on:
+      - nginx-fpm
+      - app-swoole
+      - app-franken
+    profiles:
+      - bench
+
+volumes:
+  pgdata:
+  fpm_storage:
+  fpm_public:
+
