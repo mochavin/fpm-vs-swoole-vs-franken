@@ -85,7 +85,7 @@ Write-Host "[4/5] Running smoke tests..." -ForegroundColor Blue
 
 foreach ($rt in $Runtimes) {
     Write-Host "  Smoke testing $($rt.Name)..." -ForegroundColor Yellow
-    docker compose --profile bench run --rm -e "BASE_URL=http://localhost:$($rt.Port)" k6 run /scripts/smoke.js 2>&1 | Out-Host
+    docker compose --profile bench run --rm -e "BASE_URL=$($rt.InternalUrl)" -e "K6_OUT=" k6 run /scripts/smoke.js 2>&1 | Out-Host
 
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  [OK] $($rt.Name) smoke test passed" -ForegroundColor Green

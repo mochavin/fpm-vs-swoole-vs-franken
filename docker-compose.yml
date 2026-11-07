@@ -51,8 +51,11 @@ services:
     ports:
       - "8001:80"
     volumes:
+      - ./docker/fpm/nginx-main.conf:/etc/nginx/nginx.conf:ro
       - ./docker/fpm/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - fpm_public:/var/www/html/public:ro
+    ulimits:
+      nofile: { soft: 65535, hard: 65535 }
     depends_on:
       - app-fpm
 
@@ -121,7 +124,9 @@ services:
       - ./k6:/scripts
       - ./results:/results
     environment:
-      K6_OUT: json=/results/output.json
+      # Raw per-request output is off by default: it is huge and eats CPU the
+      # servers need. Set K6_OUT=json=/results/raw.json to enable it.
+      K6_OUT: ${K6_OUT:-}
     depends_on:
       - nginx-fpm
       - app-swoole
