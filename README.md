@@ -13,30 +13,30 @@ Raw k6 summaries are in [`benchmarks/2026-11-07_azure-d4as-v6/`](benchmarks/2026
 
 | Metric | FPM | Swoole | FrankenPHP |
 |---|---:|---:|---:|
-| Total requests | 58,660 | 112,513 | **179,319** |
-| Throughput (req/s) | 255 | 521 | **780** |
-| Failed requests | 0.31% | 9.89% | **0.00%** |
-| Avg latency | 7,517 ms | **484 ms**\* | 2,078 ms |
-| p95 latency | 16,015 ms | **906 ms**\* | 3,153 ms |
+| Total requests | 57,793 | 143,961 | **177,275** |
+| Throughput (req/s) | 251 | 626 | **771** |
+| Failed requests | 0.28% | **0.00%** | **0.00%** |
+| Avg latency | 7,537 ms | 2,748 ms | **2,126 ms** |
+| p95 latency | 15,711 ms | 4,686 ms | **2,438 ms** |
+
+Latency counts successful responses only (`http_req_duration{expected_response:true}`).
 
 ### Per scenario: avg / p95 latency (ms)
 
-| Scenario | VUs | FPM | Swoole\* | FrankenPHP |
+| Scenario | VUs | FPM | Swoole | FrankenPHP |
 |---|---:|---:|---:|---:|
-| Health check (no DB) | 5000 | 4,467 / 5,490 | **471 / 986** | 2,701 / 3,409 |
-| List 20 posts (DB read) | 1000 ramp | 5,815 / 7,841 | **76 / 376** | 955 / 1,677 |
-| Single post (DB read) | 3000 | 12,870 / 15,692 | **381 / 627** | 1,806 / 2,137 |
-| Create post (DB write) | 2000 | 11,992 / 19,012 | **6 / 12** | 1,281 / 1,500 |
-| Heavy compute (CPU) | 2000 | 33,072 / 57,106 | **4,429 / 20,125** | 30,012 / 56,988 |
-
-\* **Read the Swoole latency numbers with care.** About 10% of Swoole requests failed with `dial: i/o timeout`: the listen queue overflowed when thousands of VUs connected at once. k6 records those failed requests as ~0 ms, which pulls Swoole's averages down. For example, Swoole's median heavy-compute latency is 0 ms.
+| Health check (no DB) | 5000 | 4,521 / 5,542 | 2,456 / 2,919 | **2,131 / 2,431** |
+| List 20 posts (DB read) | 1000 ramp | 6,445 / 9,856 | 5,036 / 6,717 | **1,948 / 2,792** |
+| Single post (DB read) | 3000 | 12,741 / 15,542 | 1,950 / 2,318 | **1,805 / 2,120** |
+| Create post (DB write) | 2000 | 11,722 / 18,709 | 1,938 / 2,420 | **1,286 / 1,532** |
+| Heavy compute (CPU) | 2000 | 32,940 / 57,142 | **29,800 / 54,491** | 30,065 / 56,951 |
 
 ### Takeaways
 
-- **FrankenPHP** handled the most traffic (3× FPM, 1.5× Swoole) and was the only runtime with zero failed requests.
-- **Swoole** had the lowest latency on requests that got through, but it dropped about 1 in 10 connections during the bursts of new connections.
-- **PHP-FPM** was the slowest on every scenario. With one process per request and `pm.max_children = 100`, thousands of concurrent users queue behind the workers.
-- **Heavy compute saturates the CPU on every runtime.** All three share 4 vCPUs with k6 and Postgres, so this scenario measures the machine more than the runtime.
+- **FrankenPHP** won every I/O scenario: about 3× FPM's throughput and 1.2× Swoole's, with zero failed requests.
+- **Swoole** came close behind on most scenarios, but was noticeably slower on the list-posts read (5.0 s vs 1.9 s average).
+- **PHP-FPM** was the slowest everywhere. With one process per request and `pm.max_children = 100`, thousands of concurrent users queue behind the workers.
+- **Heavy compute is a tie.** It saturates the 4 vCPUs on every runtime, so this scenario measures the machine more than the runtime.
 
 ### Test machine
 
@@ -181,9 +181,22 @@ To also save k6's raw per-request stream, run `K6_RAW=1 bash run-bench.sh`. The 
 
 ## Fairness Notes
 
-- **The FPM Nginx is tuned for high concurrency** (`docker/fpm/nginx-main.conf`: `worker_connections 16384`, `worker_rlimit_nofile 65535`, fd ulimit 65535). With the stock `nginx:alpine` config, Nginx ran out of file descriptors and dropped **75% of requests**. That made FPM look far worse than it is. The run is kept for reference in `benchmarks/2026-11-07_azure-d4as-v6/fpm_default-nginx.json`.
-- **Swoole's connection drops** come from its listen backlog. Raising Octane's Swoole `backlog` option (publish `config/octane.php` with `php artisan vendor:publish --tag=octane-config` and set `swoole.options.backlog`) together with the kernel's `net.core.somaxconn` (4096 on the test machine) should reduce them.
-- **Runtimes run one at a time**, with a 10s cooldown between them, but all containers stay up during every run.
+The first runs on this machine gave misleading results. Each problem below came from container defaults rather than the runtimes, and each is now fixed in this repo:
+
+| Problem | Effect | Fix |
+|---|---|---|
+| Stock `nginx:alpine` config (1024 `worker_connections`, low fd limit) | Nginx in front of FPM dropped **75%** of requests | `docker/fpm/nginx-main.conf` + `ulimits` on `nginx-fpm` |
+| Container open-file limit of 1024 | Swoole caps its connections at this limit, so it could hold only ~1000 of 2000–5000 connections; **10%** of requests hung for 30 s and failed. FrankenPHP (Go) raises the limit itself, so it was unaffected. | `ulimits: nofile: 65535` on every app container |
+| Listen backlog: Swoole 512, nginx 511, FrankenPHP 4096 | Connection bursts overflowed the smaller queues | `backlog` 4096 everywhere (`docker/swoole/octane.php`, `listen 80 backlog=4096`) |
+| k6 recorded failed connections as ~0 ms | Swoole's latency looked better than FrankenPHP's while it was failing | `k6/benchmark.js` and the report only count successful responses |
+
+The earlier runs are kept for reference in `benchmarks/2026-11-07_azure-d4as-v6/`:
+- `fpm_default-nginx.json`: FPM behind the stock nginx config
+- `swoole_fd-limit-1024.json`: Swoole with the 1024 open-file limit
+
+The published Swoole run was repeated after the open-file fix. The FPM and FrankenPHP runs are from the run just before, with the backlog fix applied. The open-file fix doesn't change them: FrankenPHP already raises the limit itself, and FPM workers each hold one connection.
+
+Runtimes are benchmarked one at a time with a 10 s cooldown, but all containers stay up during every run.
 
 ## Project Structure
 
@@ -193,7 +206,7 @@ To also save k6's raw per-request stream, run `K6_RAW=1 bash run-bench.sh`. The 
 │   └── Models/Post.php
 ├── docker/
 │   ├── fpm/        Dockerfile, entrypoint.sh, www.conf, nginx.conf, nginx-main.conf
-│   ├── swoole/     Dockerfile, entrypoint.sh
+│   ├── swoole/     Dockerfile, entrypoint.sh, octane.php (Swoole server options)
 │   └── franken/    Dockerfile, entrypoint.sh
 ├── k6/
 │   ├── benchmark.js     # full benchmark
@@ -232,6 +245,7 @@ opcache.jit_buffer_size=128M
 | Symptom | Cause / fix |
 |---|---|
 | `could not open '/results/...json': permission denied` | `results/` is owned by root (e.g. created via `sudo`). The k6 container runs as non-root. Run `chmod -R a+rwX results`; `run-bench.sh` now does this automatically. |
+| `dial: i/o timeout` on new connections | The container's open-file limit is too low (default 1024). Check with `grep 'open files' /proc/<pid>/limits` and set `ulimits` (see Fairness Notes). |
 | Smoke tests always fail | They must use service names (`http://nginx-fpm`), not `localhost`. Fixed in both runner scripts. |
 | `php: command not found` at the report step | Fixed: the runner falls back to running the report inside a container. |
 | `No file descriptors available` in nginx logs | Use the bundled `nginx-main.conf` (see Fairness Notes). |

@@ -39,6 +39,11 @@ services:
       DB_PASSWORD: secret
       LOG_CHANNEL: stderr
       SESSION_DRIVER: cookie
+    ulimits:
+      # Default container soft limit is 1024 open files. Swoole caps its
+      # connections at this limit, while FrankenPHP (Go) raises it itself,
+      # so set it explicitly for every runtime.
+      nofile: { soft: 65535, hard: 65535 }
     depends_on:
       db:
         condition: service_healthy
@@ -83,6 +88,11 @@ services:
       LOG_CHANNEL: stderr
       SESSION_DRIVER: cookie
       OCTANE_SERVER: swoole
+    ulimits:
+      # Default container soft limit is 1024 open files. Swoole caps its
+      # connections at this limit, while FrankenPHP (Go) raises it itself,
+      # so set it explicitly for every runtime.
+      nofile: { soft: 65535, hard: 65535 }
     depends_on:
       db:
         condition: service_healthy
@@ -111,6 +121,11 @@ services:
       LOG_CHANNEL: stderr
       SESSION_DRIVER: cookie
       OCTANE_SERVER: frankenphp
+    ulimits:
+      # Default container soft limit is 1024 open files. Swoole caps its
+      # connections at this limit, while FrankenPHP (Go) raises it itself,
+      # so set it explicitly for every runtime.
+      nofile: { soft: 65535, hard: 65535 }
     depends_on:
       db:
         condition: service_healthy
