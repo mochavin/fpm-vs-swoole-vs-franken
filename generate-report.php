@@ -50,6 +50,13 @@ if (empty($data)) {
 }
 
 // Extract metrics for comparison
+// Latency of successful responses only. Plain http_req_duration also counts
+// failed connections as ~0 ms, which makes a struggling server look fast.
+function okLatency(array $res): array {
+    $m = $res['metrics'];
+    return ($m['http_req_duration{expected_response:true}'] ?? $m['http_req_duration'])['values'];
+}
+
 $scenarios = [
     'health_check' => 'Health Check (Throughput)',
     'read_posts' => 'List Posts (DB Read)',
@@ -115,11 +122,11 @@ ob_start();
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <?php 
             $bestRps = max(array_map(fn($r) => $r['metrics']['http_reqs']['values']['rate'], $data));
-            $bestLatency = min(array_map(fn($r) => $r['metrics']['http_req_duration']['values']['avg'], $data));
+            $bestLatency = min(array_map(fn($r) => okLatency($r)['avg'], $data));
             
             foreach ($data as $runtime => $res): 
                 $rps = $res['metrics']['http_reqs']['values']['rate'];
-                $latency = $res['metrics']['http_req_duration']['values']['avg'];
+                $latency = okLatency($res)['avg'];
             ?>
                 <div class="glass rounded-2xl p-6 transition-all border border-transparent hover:border-gray-700">
                     <div class="flex items-center justify-between mb-4">
@@ -268,7 +275,7 @@ ob_start();
                 labels: runtimes.map(r => r.toUpperCase()),
                 datasets: [{
                     label: 'P95 ms',
-                    data: runtimes.map(r => data[r].metrics.http_req_duration.values['p(95)']),
+                    data: runtimes.map(r => (data[r].metrics['http_req_duration{expected_response:true}'] || data[r].metrics.http_req_duration).values['p(95)']),
                     backgroundColor: runtimes.map(r => colors[r] + '44'),
                     borderColor: runtimes.map(r => colors[r]),
                     borderWidth: 2,

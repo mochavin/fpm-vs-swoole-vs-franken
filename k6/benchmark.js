@@ -81,12 +81,24 @@ export const options = {
   },
 };
 
+// Only record latency when a response actually arrived. Requests that fail to
+// connect (status 0) report ~0 ms and would make a struggling server look fast;
+// they are still counted in `errors` and `http_req_failed`.
+const connectFailures = new Rate('connect_failures');
+
+function recordLatency(trend, res) {
+  connectFailures.add(res.status === 0);
+  if (res.status !== 0) {
+    trend.add(res.timings.duration);
+  }
+}
+
 // ─── Scenario Functions ──────────────────────────────────
 
 export function healthCheck() {
   const res = http.get(`${BASE_URL}/api/health`);
 
-  healthDuration.add(res.timings.duration);
+  recordLatency(healthDuration, res);
   errorRate.add(res.status !== 200);
 
   check(res, {
@@ -106,7 +118,7 @@ export function healthCheck() {
 export function readPosts() {
   const res = http.get(`${BASE_URL}/api/posts`);
 
-  listPostsDuration.add(res.timings.duration);
+  recordLatency(listPostsDuration, res);
   errorRate.add(res.status !== 200);
 
   check(res, {
@@ -127,7 +139,7 @@ export function singlePost() {
   const postId = Math.floor(Math.random() * 100) + 1;
   const res = http.get(`${BASE_URL}/api/posts/${postId}`);
 
-  singlePostDuration.add(res.timings.duration);
+  recordLatency(singlePostDuration, res);
   errorRate.add(res.status !== 200);
 
   check(res, {
@@ -159,7 +171,7 @@ export function writePosts() {
 
   const res = http.post(`${BASE_URL}/api/posts`, payload, params);
 
-  createPostDuration.add(res.timings.duration);
+  recordLatency(createPostDuration, res);
   errorRate.add(res.status !== 201);
 
   check(res, {
@@ -179,7 +191,7 @@ export function writePosts() {
 export function heavyCompute() {
   const res = http.get(`${BASE_URL}/api/heavy`);
 
-  heavyDuration.add(res.timings.duration);
+  recordLatency(heavyDuration, res);
   errorRate.add(res.status !== 200);
 
   check(res, {
