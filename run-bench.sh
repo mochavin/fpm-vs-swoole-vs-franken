@@ -28,6 +28,7 @@ echo -e "${NC}"
 
 # Create results directory
 mkdir -p "$RESULTS_DIR"
+chmod -R a+rwX ./results  # k6 container runs as non-root and must write here
 
 # ─── Step 1: Generate APP_KEY if not set ──────────────────
 if [ ! -f .env ] || ! grep -q "APP_KEY=base64:" .env 2>/dev/null; then
@@ -78,8 +79,9 @@ echo -e "${BLUE}[4/5] Running smoke tests...${NC}"
 for i in "${!RUNTIMES[@]}"; do
     echo -e "  ${YELLOW}Smoke testing ${RUNTIMES[$i]}...${NC}"
     docker compose --profile bench run --rm \
-        -e BASE_URL="http://localhost:${PORTS[$i]}" \
-        k6 run /scripts/smoke.js 2>/dev/null && \
+        -e BASE_URL="${INTERNAL_URLS[$i]}" \
+        -e K6_OUT= \
+        k6 run /scripts/smoke.js >/dev/null 2>&1 && \
         echo -e "  ${GREEN}✓ ${RUNTIMES[$i]} smoke test passed${NC}" || \
         echo -e "  ${RED}✗ ${RUNTIMES[$i]} smoke test failed${NC}"
 done
@@ -101,7 +103,7 @@ for i in "${!RUNTIMES[@]}"; do
     docker compose --profile bench run --rm \
         -e BASE_URL="${url}" \
         -e RUNTIME="${runtime}" \
-        -e K6_OUT="json=/results/${runtime}_results.json" \
+        -e K6_OUT="${K6_RAW:+json=/results/${TIMESTAMP}/${runtime}_raw.json}" \
         k6 run /scripts/benchmark.js \
         2>&1 | tee "${RESULTS_DIR}/${runtime}_output.txt"
 
@@ -129,7 +131,13 @@ ls -la "$RESULTS_DIR/" 2>/dev/null || true
 
 echo ""
 echo -e "${YELLOW}[Report] Generating HTML summary...${NC}"
-php generate-report.php
+if command -v php >/dev/null 2>&1; then
+    php generate-report.php
+else
+    # No PHP on the host: run the report generator inside the Swoole image
+    docker compose run --rm --no-deps -v "$PWD:/work" -w /work \
+        --entrypoint php app-swoole generate-report.php
+fi
 
 echo ""
 echo -e "${YELLOW}To view results:${NC}"

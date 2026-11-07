@@ -45,6 +45,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progre
 # Install Octane with Swoole
 RUN php artisan octane:install --server=swoole --no-interaction
 
+# Octane config with Swoole server options (listen backlog, see file)
+COPY docker/swoole/octane.php config/octane.php
+
 # Copy entrypoint
 COPY docker/swoole/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
